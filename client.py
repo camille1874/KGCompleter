@@ -8,5 +8,11 @@ from tools import text_processor as T
 
 entity = input()
 attr = input()
-ans = T.clean_str(BaikeCrawler.query(entity, attr))
-print(ans)
+result = BaikeCrawler.query(entity, attr)
+ans = result[0]
+log = result[1]
+print(ans, log)
+result = BaikeCrawler.get_tuple(entity)
+ans = result[0]
+log = result[1]
+print(ans, log)
