@@ -53,4 +53,10 @@ def get_relation_value(m_collection, entity, attr):
     return values
 
 
-
+# collection = stat()
+# cursor = collection.find()
+# cursor = [len(x) for x in cursor]
+# print(cursor)
+# result = cursor[cursor.find(max(cursor))]["tail"]
+# print(result)
+# print(len(result))

@@ -80,6 +80,15 @@ def get_tuple(entity, attr):
             for tag in tags:
                 answers.append(clean_str(tag.get_text()))
         m_tuple['tail'] = answers
+    elif attr == "BaiduCARD":
+        # TODO: 注意长度
+        answers = []
+        intro = soup.find("meta", attrs={"name": "description"})["content"]
+        if intro == "":
+            log += attr + "-找不到\n"
+        else:
+            answers.append(clean_str(intro))
+        m_tuple['tail'] = answers
     else:
         info_block = soup.find(class_='basic-info cmn-clearfix')
         if info_block is None:
