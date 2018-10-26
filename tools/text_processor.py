@@ -6,6 +6,7 @@
 import re
 import bs4
 
+
 def extract_tag(s):
     res_str = r'<.*?>(.*?)</.*?>'
     tmp_str = re.findall(res_str, s, re.S | re.M)
@@ -14,13 +15,14 @@ def extract_tag(s):
     else:
         return s
 
+
 def clean_str(s):
     if isinstance(s, bs4.element.Tag):
         s = extract_tag(s)
     elif isinstance(s, list):
         s = [clean_str(x.string) for x in s]
-        s = "".join(s)
-    if not isinstance(s, str):
-        return ""
-    return s.replace("\n", "").strip()
-
+    elif isinstance(s, str):
+        s = s.replace("\n", "").strip()
+    else:
+        s = ""
+    return s

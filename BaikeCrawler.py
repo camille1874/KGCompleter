@@ -17,15 +17,20 @@ def get_info(basicInfo_block):
             for bI in bI_LR:
                 if not isinstance(bI, bs4.element.Tag) or bI.name is None:
                     continue
-                if bI.name == 'dt':
-                    tempName = ''
+                if bI.name == "dt":
+                    tmp_name = ""
                     for bi in bI.contents:
-                        tempName += bi.string.strip().replace(" ", "")
-                elif bI.name == 'dd':
-                    if not tempName in info:
-                        info[tempName] = T.clean_str(bI.contents)
-                    else:
-                        info[tempName].append(T.clean_str(bI.contents))
+                        tmp_name += bi.string.strip().replace(" ", "")
+                elif bI.name == "dd":
+                    contents = T.clean_str(bI.contents)
+                    if isinstance(contents, str) and contents != "":
+                        contents = [contents]
+                    elif isinstance(contents, list):
+                        contents = [x for x in contents if x != ""]
+                        if len(contents) == 0:
+                            continue
+                    info[tmp_name] = contents
+
         except Exception as e:
             continue
     return info

@@ -53,6 +53,4 @@ def get_relation_value(m_collection, entity, attr):
     return values
 
 
-collection = stat()
-result = get_relation_value(collection, "!DOCTYPE", "BaiduTAG")
-print(result)
+

@@ -7,8 +7,6 @@ from tools import DBUtil
 import codecs
 import json
 
-from tools.DBUtil import get_relation_value
-
 
 def check_result():
     m_collection = DBUtil.stat()
@@ -33,7 +31,7 @@ def check_result():
         # m_result = get_relation_value(m_collection, attr, rel)
         # if not set(m_result["tail"]) == set(new_tuple["tail"]):
         if not m_tuple["tail"] in new_tuple["tail"]:
-            compare_file.write("数据库知识：" + json.dumps(m_tuple, ensure_ascii=False) + "\n"
+            compare_file.write("不一致的数据库知识条目：" + json.dumps(m_tuple, ensure_ascii=False) + "\n"
                                + "新/已爬取知识集合：" + json.dumps(new_tuple, ensure_ascii=False) + "\n\n")
             compare_file.flush()
             print(m_tuple)
