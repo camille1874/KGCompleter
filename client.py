@@ -4,15 +4,14 @@
 # @Project: KGCompleter
 
 import BaikeCrawler
-from tools import text_processor as T
+from exist_en_completer import check_result
 
-entity = input()
-attr = input()
-result = BaikeCrawler.query(entity, attr)
-ans = result[0]
-log = result[1]
-print(ans, log)
-result = BaikeCrawler.get_tuple(entity)
-ans = result[0]
-log = result[1]
-print(ans, log)
+
+# entity = input()
+# attr = input()
+# ans, log = BaikeCrawler.query(entity, attr)
+# print(ans, log)
+# ans, log = BaikeCrawler.get_knowledge(entity)
+# print(ans, log)
+
+check_result()
