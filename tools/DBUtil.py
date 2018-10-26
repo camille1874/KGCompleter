@@ -37,7 +37,7 @@ def get_value(m_collection, entity):
 
 
 def get_relation_value(m_collection, entity, attr):
-    start = time.time()
+    # start = time.time()
     cursor = m_collection.find({"head": entity, "relation": attr})
     # pipeline = [{'$match': {'head': entity, 'relation': attr}}]
     # cursor = m_collection.aggregate(pipeline)
@@ -48,8 +48,8 @@ def get_relation_value(m_collection, entity, attr):
     for doc in cursor:
         answers.append(doc['tail'])
     values["tail"] = answers
-    total = (time.time() - start)
-    print(total)
+    # total = (time.time() - start)
+    # print(total)
     return values
 
 
