@@ -6,6 +6,7 @@
 from tools import HTML_tools as To
 from tools import text_processor as T
 import bs4
+import re
 
 from tools.text_processor import clean_str
 
@@ -98,3 +99,24 @@ def get_tuple(entity, attr):
         m_tuple['tail'] = result[0]
         log += result[1]
     return m_tuple, log
+
+
+def trigger(entity):
+    entity_uri = 'http://baike.baidu.com/item/' + entity
+    soup = To.get_html_baike(entity_uri)
+    # print(soup.prettify()
+    seeds = []
+    sources = soup.find_all("a", attrs={"href": re.compile(r'/item/.*')})
+    entities = soup.find_all("div", attrs={"class": "name"})
+    for item in sources:
+        if not (item.get("data-lemmaid") is None or item.string is None):
+            seeds.append(item.string)
+    for item in entities:
+        seeds.append(item["title"])
+    return seeds
+
+
+# def restat():
+
+
+# trigger("姚明")

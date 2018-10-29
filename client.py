@@ -4,7 +4,7 @@
 # @Project: KGCompleter
 
 import baike_crawler
-from exist_en_completer import check_result
+from exist_en_completer import en_completer
 
 
 # entity = input()
@@ -13,5 +13,5 @@ from exist_en_completer import check_result
 # print(ans, log)
 # ans, log = BaikeCrawler.get_knowledge(entity)
 # print(ans, log)
-
-check_result()
+ec = en_completer()
+ec.check_result()
