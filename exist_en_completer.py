@@ -49,7 +49,7 @@ def check_result():
 
         if not ((m_tuple["tail"] in new_tuple["tail"]) or (m_tuple["tail"] == new_tuple["tail"])):
             compare_file.write("不一致的数据库知识条目：" + json.dumps(m_tuple, ensure_ascii=False) + "\n"
-                               + "新/已爬取知识集合：" + json.dumps(new_tuple, ensure_ascii=False) + "\n\n")
+                               + "新/已爬取的对应答案集：" + json.dumps(new_tuple, ensure_ascii=False) + "\n\n")
             compare_file.flush()
             # i += 1
         if entity_record != "" and entity != entity_record:
