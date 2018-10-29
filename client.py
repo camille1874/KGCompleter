@@ -3,7 +3,7 @@
 # @Author  : xuzh
 # @Project: KGCompleter
 
-import BaikeCrawler
+import baike_crawler
 from exist_en_completer import check_result
 
 

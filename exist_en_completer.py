@@ -2,56 +2,60 @@
 # @Time    : 2018/10/26 10:30
 # @Author  : xuzh
 # @Project: KGCompleter
-from BaikeCrawler import get_tuple
-from tools import DBUtil
+from baike_crawler import get_tuple
+from tools import DB_util
 import codecs
 import json
 
 
+# 因根据<实体，关系>直接获取mongoDB所有对应值效率较低，改成根据知识库三元组遍历。
+# attr_record rel_record记录遍历历史。
+# kep_rel字典记录已经爬取过的关系内容。
 def check_result():
-    m_collection = DBUtil.stat()
+    m_collection = DB_util.stat()
     compare_file = codecs.open("compare_file.txt", mode="w", encoding="utf-8")
-    i = 0
+    # i = 0
     cursor = m_collection.find()
     keep_rel = {}
-    attr_record = ""
+    entity_record = ""
     rel_record = []
     for document in cursor:
-        if i == 10:
-            break
+        # if i == 10:
+        #     break
         m_tuple = document
         del m_tuple["_id"]
-        attr = m_tuple["head"]
+        entity = m_tuple["head"]
         rel = m_tuple["relation"]
         new_tuple = m_tuple
         rel_record.append(rel)
-        if attr in keep_rel:
-            rels = keep_rel[attr]
+        if entity in keep_rel:
+            rels = keep_rel[entity]
         else:
-            keep_rel[attr] = {}
+            keep_rel[entity] = {}
             rels = {}
         if rel in rels:
             new_tuple["tail"] = rels[rel]
         else:
-            new_tuple = get_tuple(attr, rel)[0]
-            rels[rel] = new_tuple["tail"]
-            keep_rel[attr] = rels
+            try:
+                new_tuple = get_tuple(entity, rel)[0]
+                rels[rel] = new_tuple["tail"]
+                keep_rel[entity] = rels
+            except Exception as e:
+            #     TODO:记录没有处理好的实体关系。因为更新后被删除而导致的不一致不用写入数据库
+                print(e)
+                continue
 
-        # m_result = get_relation_value(m_collection, attr, rel)
-        # if not set(m_result["tail"]) == set(new_tuple["tail"]):
-        if not m_tuple["tail"] in new_tuple["tail"]:
+        if not ((m_tuple["tail"] in new_tuple["tail"]) or (m_tuple["tail"] == new_tuple["tail"])):
             compare_file.write("不一致的数据库知识条目：" + json.dumps(m_tuple, ensure_ascii=False) + "\n"
                                + "新/已爬取知识集合：" + json.dumps(new_tuple, ensure_ascii=False) + "\n\n")
             compare_file.flush()
-            print(m_tuple)
-            print(new_tuple)
-            i += 1
-        if attr != attr_record:
-            new_record = {"head": attr}
-            for tmp in keep_rel[attr]:
+            # i += 1
+        if entity_record != "" and entity != entity_record:
+            new_record = {"head": entity_record}
+            for tmp in keep_rel[entity_record]:
                 if tmp not in rel_record:
-                    new_record["relation"] = tmp[0]
-                    new_record["tail"] = tmp[1]
+                    new_record["relation"] = tmp
+                    new_record["tail"] = keep_rel[entity_record][tmp]
                     compare_file.write("新/已爬取的数据库不存在的条目：" + json.dumps(new_record, ensure_ascii=False) + "\n\n")
             rel_record = []
-        attr_record = attr
+            entity_record = entity
