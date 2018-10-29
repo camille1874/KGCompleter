@@ -55,13 +55,17 @@ def get_knowledge(entity):
     log = "查询百科列表实体:" + entity_uri + "\n"
     soup = To.get_html_baike(entity_uri)
     info_block = soup.find(class_='basic-info cmn-clearfix')
-    tuples = {}
+    tuples = {"head": entity}
+    tmp = {}
     if info_block is None:
         log += entity + "-找不到\n"
     else:
-        tuples = get_info(info_block)
-        if tuples == {}:
-            log += entity + "-没有属性或关系\n"
+        tmp = get_info(info_block)
+        if tmp == {}:
+            log += entity + "-没有Infobox属性或关系\n"
+    tmp["BaiduTAG"] = get_tuple(entity, "BaiduTAG")[0]["tail"]
+    tmp["BaiduCARD"] = get_tuple(entity, "BaiduCARD")[0]["tail"]
+    tuples["relation"] = tmp
     return tuples, log
 
 

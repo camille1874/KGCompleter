@@ -4,14 +4,12 @@
 # @Project: KGCompleter
 import datetime
 
-from baike_crawler import get_tuple
+from baike_crawler import get_tuple, trigger, get_knowledge
 from tools import DB_util
 import codecs
 import json
 
 
-# 因根据<实体，关系>直接获取mongoDB所有对应值效率较低，
-# 改成根据知识库三元组遍历,触发也是根据tail实体。
 class en_completer:
     def __init__(self):
         self.m_collection = DB_util.stat()
@@ -25,12 +23,15 @@ class en_completer:
             self.entites = [x.split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
 
-
-# 为便于管理，将每次重新启动后运行期间记录的实体和关系和本地历史记录区分开。
-    def check_result(self):
+    # 根据知识库三元组遍历, 触发也是根据tail实体，该方法不适用：
+    # 按<实体，关系>直接检索mongoDB所有对应值效率较低，
+    # 遍历的话知识库存储是乱序的，
+    # 而按网页遍历更方便收集同一实体的信息。
+    def check_result_from_db(self):
         keep_rel = {}
-        entity_record = ""
-        rel_record = []
+        # tmp_last_entity = ""
+        # entity_record = set()
+        rel_record = set()
         for document in self.cursor:
             m_tuple = document
             del m_tuple["_id"]
@@ -39,7 +40,8 @@ class en_completer:
                 continue
             rel = m_tuple["relation"]
             new_tuple = m_tuple
-            rel_record.append(rel)
+            rel_record.add(rel)
+            print(document)
             if entity in keep_rel:
                 rels = keep_rel[entity]
             else:
@@ -64,19 +66,42 @@ class en_completer:
                                         + "新/已爬取的对应答案集：" + json.dumps(new_tuple, ensure_ascii=False) + "\n\n")
                 self.compare_file.flush()
 
-            if entity != entity_record:
-                if entity_record != "":
-                    new_record = {"head": entity_record}
-                    for tmp in keep_rel[entity_record]:
-                        if tmp not in rel_record:
-                            new_record["relation"] = tmp
-                            new_record["tail"] = keep_rel[entity_record][tmp]
-                            self.compare_file.write(
-                                "新/已爬取的数据库不存在的条目：" + json.dumps(new_record, ensure_ascii=False) + "\n\n")
-                            self.compare_file.flush()
-                rel_record = []
-                entity_record = entity
-                self.record_file.write(entity_record + "\t")
-                self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                self.record_file.write("\n")
-                self.record_file.flush()
+            # if entity != tmp_last_entity:
+            #     if tmp_last_entity != "":
+            #         new_record = {"head": tmp_last_entity}
+            #         for tmp in keep_rel[tmp_last_entity]:
+            #             if tmp not in rel_record:
+            #                 new_record["relation"] = tmp
+            #                 new_record["tail"] = keep_rel[tmp_last_entity][tmp]
+            #                 self.compare_file.write(
+            #                     "新/已爬取的数据库不存在的条目：" + json.dumps(new_record, ensure_ascii=False) + "\n\n")
+            #                 self.compare_file.flush()
+            #     rel_record.clear()
+            #     tmp_last_entity = entity
+            #     self.record_file.write(tmp_last_entity + "\t")
+            #     self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            #     self.record_file.write("\n")
+            #     self.record_file.flush()
+
+    # 不可行，太慢了
+    def check_result_from_web(self):
+        init_entity = "姚明"
+        entity_list = [init_entity]
+        while True:
+            for en in entity_list:
+                web_tuples = get_knowledge(en)[0]
+                for rel in web_tuples["relation"]:
+                    db_tuple = list(self.m_collection.find({"head": en, "relation": rel}))
+                    print(db_tuple)
+                    db_tuple = [x["tail"] for x in db_tuple]
+                    if not set(web_tuples["relation"][rel]) == set(db_tuple):
+                        self.compare_file.write("不一致的知识条目集：" + json.dumps(db_tuple, ensure_ascii=False) + "\n"
+                                                + "新/已爬取的对应条目集：" + json.dumps(rel, ensure_ascii=False) + "\n\n")
+                        self.compare_file.flush()
+                if not en in self.entites:
+                    self.record_file.write(en + "\t")
+                    self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    self.record_file.write("\n")
+                    self.record_file.flush()
+                entity_list.remove(en)
+                entity_list.append(trigger(en))

@@ -14,4 +14,4 @@ from exist_en_completer import en_completer
 # ans, log = BaikeCrawler.get_knowledge(entity)
 # print(ans, log)
 ec = en_completer()
-ec.check_result()
+ec.check_result_from_web()
