@@ -39,7 +39,7 @@ def get_info(basicInfo_block):
 # 值
 def query(entity, attr):
     info, log = get_knowledge(entity)
-    answer = ""
+    answer = []
     log += "查询属性/关系:" + attr + "\n"
     if attr in info:
         answer = info[attr]

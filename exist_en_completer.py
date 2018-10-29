@@ -37,7 +37,9 @@ def check_result():
             new_tuple["tail"] = rels[rel]
         else:
             try:
-                new_tuple = get_tuple(entity, rel)[0]
+                record = get_tuple(entity, rel)
+                new_tuple = record[0]
+                # print(record[1])
                 rels[rel] = new_tuple["tail"]
                 keep_rel[entity] = rels
             except Exception as e:
