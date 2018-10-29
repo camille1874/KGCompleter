@@ -22,8 +22,9 @@ def clean_str(s):
     elif isinstance(s, list):
         s = [clean_str(x.string) for x in s]
     elif isinstance(s, str):
-        pattern = re.compile(r'\s+')
-        s = re.sub(pattern, '', s)
+        s = s.replace("\n", "").replace("\t", "")
+        # pattern = re.compile(r'\s+')
+        # s = re.sub(pattern, '', s)
     else:
         s = ""
     return s
