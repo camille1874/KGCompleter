@@ -20,9 +20,9 @@ def clean_str(s):
     if isinstance(s, bs4.element.Tag):
         s = extract_tag(s)
     elif isinstance(s, list):
-        s = [clean_str(x.string) for x in s]
+        s = [clean_str(x) for x in s]
     elif isinstance(s, str):
-        s = s.replace("\n", "").replace("\t", "")
+        s = s.replace("\n", "").replace("\t", "").strip()
         # pattern = re.compile(r'\s+')
         # s = re.sub(pattern, '', s)
     else:

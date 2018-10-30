@@ -20,8 +20,45 @@ class en_completer:
         self.last_entity = ""
         self.entites = []
         if len(records) > 0:
-            self.entites = [x.split("\t")[0] for x in records]
+            self.entites = [x.strip().split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
+
+    # 根据web页面遍历, 触发也是根据网页链接：
+    def check_result_from_web(self):
+        init_entity = "姚明"
+        entity_list = [init_entity]
+        while True:
+            for en in entity_list:
+                web_tuples = get_knowledge(en)[0]
+                db_tuples = list(self.m_collection.find({"head": en}))
+                if len(db_tuples) == 0:
+                    self.compare_file.write(
+                        "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n\n")
+                    self.compare_file.flush()
+                    continue
+                else:
+                    for rel in web_tuples["relation"].items():
+                        db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
+                        if len(db_tuple) == 0:
+                            self.compare_file.write(
+                                "新/已爬取的数据库不存在的实体-关系条目：" + json.dumps(rel, ensure_ascii=False) + "\n\n")
+                            self.compare_file.flush()
+                        elif not set(rel[1]) == set(db_tuple):
+                            self.compare_file.write("不一致的实体关系:" + web_tuples["head"] + "-" + rel[0] + ":\n"
+                                                                                                      "知识库答案集：")
+                            self.compare_file.write(" / ".join(db_tuple))
+                            self.compare_file.write("\n新/已爬取的答案集：")
+                            self.compare_file.write(" / ".join(rel[1]))
+                            self.compare_file.write("\n\n")
+                            self.compare_file.flush()
+                if not en in self.entites:
+                    self.record_file.write(en + "\t")
+                    self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    self.record_file.write("\n")
+                    self.record_file.flush()
+                    self.entites.append(en)
+                entity_list += trigger(en)
+                entity_list.remove(en)
 
     # 根据知识库三元组遍历, 触发也是根据tail实体，该方法不适用：
     # 按<实体，关系>直接检索mongoDB所有对应值效率较低，
@@ -82,26 +119,3 @@ class en_completer:
             #     self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             #     self.record_file.write("\n")
             #     self.record_file.flush()
-
-    # 不可行，太慢了
-    def check_result_from_web(self):
-        init_entity = "姚明"
-        entity_list = [init_entity]
-        while True:
-            for en in entity_list:
-                web_tuples = get_knowledge(en)[0]
-                for rel in web_tuples["relation"]:
-                    db_tuple = list(self.m_collection.find({"head": en, "relation": rel}))
-                    print(db_tuple)
-                    db_tuple = [x["tail"] for x in db_tuple]
-                    if not set(web_tuples["relation"][rel]) == set(db_tuple):
-                        self.compare_file.write("不一致的知识条目集：" + json.dumps(db_tuple, ensure_ascii=False) + "\n"
-                                                + "新/已爬取的对应条目集：" + json.dumps(rel, ensure_ascii=False) + "\n\n")
-                        self.compare_file.flush()
-                if not en in self.entites:
-                    self.record_file.write(en + "\t")
-                    self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                    self.record_file.write("\n")
-                    self.record_file.flush()
-                entity_list.remove(en)
-                entity_list.append(trigger(en))

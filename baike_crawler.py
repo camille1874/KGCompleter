@@ -109,14 +109,16 @@ def trigger(entity):
     entity_uri = 'http://baike.baidu.com/item/' + entity
     soup = To.get_html_baike(entity_uri)
     # print(soup.prettify()
-    seeds = []
+    seeds = set()
     sources = soup.find_all("a", attrs={"href": re.compile(r'/item/.*')})
     entities = soup.find_all("div", attrs={"class": "name"})
     for item in sources:
         if not (item.get("data-lemmaid") is None or item.string is None):
-            seeds.append(item.string)
+            seeds.add(item.string)
     for item in entities:
-        seeds.append(item["title"])
+        seeds.add(item["title"])
+    if entity in seeds:
+        seeds.remove(entity)
     return seeds
 
 
