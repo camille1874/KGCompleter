@@ -52,6 +52,7 @@ def get_relation_value(m_collection, entity, attr):
     # print(total)
     return values
 
+#def write_db
 
 # collection = stat()
 # cursor = collection.find()

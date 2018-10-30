@@ -23,6 +23,12 @@ class en_completer:
             self.entites = [x.strip().split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
 
+    # kb存在web不存在：不更新
+    # kb和web不一致：按web更新
+    # kb不存在web存在：写入
+#    def write_db(self):
+
+
     # 根据web页面遍历, 触发也是根据网页链接：
     def check_result_from_web(self):
         init_entity = "姚明"
@@ -41,7 +47,8 @@ class en_completer:
                         db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
                         if len(db_tuple) == 0:
                             self.compare_file.write(
-                                "新/已爬取的数据库不存在的实体-关系条目：" + json.dumps(rel, ensure_ascii=False) + "\n\n")
+                                "新/已爬取的数据库不存在的实体-关系条目：" + web_tuples["head"] + "-" + json.dumps(rel,
+                                                                                                ensure_ascii=False) + "\n\n")
                             self.compare_file.flush()
                         elif not set(rel[1]) == set(db_tuple):
                             self.compare_file.write("不一致的实体关系:" + web_tuples["head"] + "-" + rel[0] + ":\n"
