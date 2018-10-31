@@ -25,17 +25,16 @@ class en_completer:
             self.entites = [x.strip().split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
 
-    # kb存在web不存在：不更新
-    # kb和web不一致：按web更新
-    # kb不存在web存在：写入(新关系：单条三元组；新实体：整条知识)
-    #    def write_db(self):
-
     # 根据web页面遍历, 触发也是根据网页链接：
+    # kb存在web不存在：旧实体-不改变；旧关系-删除三元组
+    # kb和web不一致：按web更新
+    # kb不存在web存在：写入(新关系-单条三元组；新实体-整条知识)
     def check_result_from_web(self):
         init_entity = "姚明"
         entity_list = [init_entity]
-        while True:
-            for en in entity_list:
+        while len(entity_list) is not 0:
+            en = entity_list[0]
+            try:
                 web_tuples = get_knowledge(en)[0]
                 db_tuples = list(self.m_collection.find({"head": en}))
                 if len(db_tuples) == 0:
@@ -71,13 +70,13 @@ class en_completer:
                             self.compare_file.write(" / ".join(rel[1]))
                             self.compare_file.write("\n更新条目" + "*" * 20)
                             print(update_tuple(self.m_collection, new_tuple))
-                            self.compare_file.write("\n")
+                            self.compare_file.write("\n\n")
                             self.compare_file.flush()
                             # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
                             # for i in r:
                             #     print(i)
 
-                if not en in self.entites:
+                if en not in self.entites:
                     self.record_file.write(en + "\t")
                     self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                     self.record_file.write("\n")
@@ -85,6 +84,9 @@ class en_completer:
                     self.entites.append(en)
                 entity_list += trigger(en)
                 entity_list.remove(en)
+            except Exception as e:
+                print(e)
+                continue
 
     # 根据知识库三元组遍历, 触发也是根据tail实体，该方法不适用：
     # 按<实体，关系>直接检索mongoDB所有对应值效率较低，
