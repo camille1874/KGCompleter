@@ -94,7 +94,7 @@ def get_tuple(entity, attr):
             intro = meta["content"]
         if intro is None or intro == "":
             log += attr + "-找不到\n"
-        answers.append(clean_str(intro[:intro[:1000].rfind("。")]))
+        answers.append(clean_str(intro[:intro[:1000].rfind("。") + 1]))
         m_tuple['tail'] = answers
     else:
         result = query(entity, attr)

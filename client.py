@@ -3,6 +3,10 @@
 # @Author  : xuzh
 # @Project: KGCompleter
 
+# TODO: 定期更新
+# TODO: 超时重启
+# TODO: 多线程
+# TODO: 查其他注意事项
 import baike_crawler
 from exist_en_completer import en_completer
 
