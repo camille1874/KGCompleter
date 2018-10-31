@@ -9,6 +9,8 @@ from tools import DB_util
 import codecs
 import json
 
+from tools.DB_util import insert_tuple, update_tuple, insert_knowledge
+
 
 class en_completer:
     def __init__(self):
@@ -25,9 +27,8 @@ class en_completer:
 
     # kb存在web不存在：不更新
     # kb和web不一致：按web更新
-    # kb不存在web存在：写入
-#    def write_db(self):
-
+    # kb不存在web存在：写入(新关系：单条三元组；新实体：整条知识)
+    #    def write_db(self):
 
     # 根据web页面遍历, 触发也是根据网页链接：
     def check_result_from_web(self):
@@ -39,25 +40,43 @@ class en_completer:
                 db_tuples = list(self.m_collection.find({"head": en}))
                 if len(db_tuples) == 0:
                     self.compare_file.write(
-                        "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n\n")
+                        "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n")
+                    self.compare_file.write("插入新实体条目集:" + "*" * 20)
+                    print(insert_knowledge(self.m_collection, web_tuples))
+                    self.compare_file.write("\n\n")
                     self.compare_file.flush()
-                    continue
+                    # r = self.m_collection.find({"head": web_tuples["head"]})
+                    # for i in r:
+                    #     print(i)
                 else:
                     for rel in web_tuples["relation"].items():
                         db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
+                        new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
                         if len(db_tuple) == 0:
                             self.compare_file.write(
                                 "新/已爬取的数据库不存在的实体-关系条目：" + web_tuples["head"] + "-" + json.dumps(rel,
-                                                                                                ensure_ascii=False) + "\n\n")
+                                                                                                ensure_ascii=False) + "\n")
+                            self.compare_file.write("插入新条目:" + "*" * 20)
+                            print(insert_tuple(self.m_collection, new_tuple))
+                            self.compare_file.write("\n\n")
                             self.compare_file.flush()
+                            # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
+                            # for i in r:
+                            #     print(i)
                         elif not set(rel[1]) == set(db_tuple):
                             self.compare_file.write("不一致的实体关系:" + web_tuples["head"] + "-" + rel[0] + ":\n"
                                                                                                       "知识库答案集：")
                             self.compare_file.write(" / ".join(db_tuple))
                             self.compare_file.write("\n新/已爬取的答案集：")
                             self.compare_file.write(" / ".join(rel[1]))
-                            self.compare_file.write("\n\n")
+                            self.compare_file.write("\n更新条目" + "*" * 20)
+                            print(update_tuple(self.m_collection, new_tuple))
+                            self.compare_file.write("\n")
                             self.compare_file.flush()
+                            # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
+                            # for i in r:
+                            #     print(i)
+
                 if not en in self.entites:
                     self.record_file.write(en + "\t")
                     self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
