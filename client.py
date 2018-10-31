@@ -7,6 +7,8 @@
 # TODO: 超时重启
 # TODO: 多线程
 # TODO: 查其他注意事项
+
+# TODO: 多义问题 原始（mongoDB三元组就没有存实体URI）
 import baike_crawler
 from exist_en_completer import en_completer
 

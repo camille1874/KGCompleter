@@ -26,7 +26,7 @@ class en_completer:
             self.last_entity = self.entites[-1]
 
     # 根据web页面遍历, 触发也是根据网页链接：
-    # kb存在web不存在：旧实体-不改变；旧关系-删除三元组
+    # kb存在web不存在：不改变
     # kb和web不一致：按web更新
     # kb不存在web存在：写入(新关系-单条三元组；新实体-整条知识)
     def check_result_from_web(self):

@@ -81,7 +81,8 @@ def insert_knowledge(m_collection, entity_knowledge):
 # 知识库可能存在<head, relation> 多条结果， 注意处理tail集合不一致的情况
 def update_tuple(m_collection, m_tuple, db_tuple_len):
     if len(m_tuple["tail"]) == 0:
-        return m_collection.remove({"head": m_tuple["head"], "relation": m_tuple["relation"]})
+        # return m_collection.remove({"head": m_tuple["head"], "relation": m_tuple["relation"]})
+        return None
     elif db_tuple_len == 1:
         return m_collection.update({"head": m_tuple["head"], "relation": m_tuple["relation"]},
                                    {"$set": {"tail": m_tuple["tail"][0]}})
