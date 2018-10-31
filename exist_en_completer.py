@@ -18,6 +18,7 @@ class en_completer:
         self.cursor = self.m_collection.find()
         self.compare_file = codecs.open("compare_file.txt", mode="a+", encoding="utf-8")
         self.record_file = codecs.open("record_file.txt", mode="a+", encoding="utf-8")
+        self.record_file.seek(0)
         records = self.record_file.readlines()
         self.last_entity = ""
         self.entites = []
@@ -30,37 +31,42 @@ class en_completer:
     # kb和web不一致：按web更新
     # kb不存在web存在：写入(新关系-单条三元组；新实体-整条知识)
     def check_result_from_web(self):
-        init_entity = "姚明"
+        if self.last_entity == "":
+            init_entity = "姚明"
+        else:
+            init_entity = self.last_entity
         entity_list = [init_entity]
         while len(entity_list) is not 0:
             en = entity_list[0]
+            web_tuples = get_knowledge(en)[0]
+            db_tuples = list(self.m_collection.find({"head": en}))
             try:
-                web_tuples = get_knowledge(en)[0]
-                db_tuples = list(self.m_collection.find({"head": en}))
                 if len(web_tuples) == 0:
                     entity_list.remove(en)
                     continue
                 if len(db_tuples) == 0:
                     self.compare_file.write(
                         "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n")
-                    self.compare_file.write("插入新实体条目集:" + "*" * 20)
-                    print(insert_knowledge(self.m_collection, web_tuples))
-                    self.compare_file.write("\n\n")
+                    if insert_knowledge(self.m_collection, web_tuples) is not None:
+                        self.compare_file.write("插入新实体条目集:" + "*" * 50)
+                    self.compare_file.write("\n")
                     self.compare_file.flush()
                     # r = self.m_collection.find({"head": web_tuples["head"]})
                     # for i in r:
                     #     print(i)
                 else:
                     for rel in web_tuples["relation"].items():
+                        if len(rel[1]) == 0:
+                            continue
                         db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
                         new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
                         if len(db_tuple) == 0:
                             self.compare_file.write(
                                 "新/已爬取的数据库不存在的实体-关系条目：" + web_tuples["head"] + "-" + json.dumps(rel,
                                                                                                 ensure_ascii=False) + "\n")
-                            self.compare_file.write("插入新条目:" + "*" * 20)
-                            print(insert_tuple(self.m_collection, new_tuple))
-                            self.compare_file.write("\n\n")
+                            if insert_tuple(self.m_collection, new_tuple) is not None:
+                                self.compare_file.write("插入新条目:" + "*" * 50)
+                            self.compare_file.write("\n")
                             self.compare_file.flush()
                             # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
                             # for i in r:
@@ -74,9 +80,9 @@ class en_completer:
                                 self.compare_file.write(" / ".join(db_tuple))
                             self.compare_file.write("\n新/已爬取的答案集：")
                             self.compare_file.write(" / ".join(rel[1]))
-                            self.compare_file.write("\n更新条目" + "*" * 20)
-                            print(update_tuple(self.m_collection, new_tuple, len(db_tuple)))
-                            self.compare_file.write("\n\n")
+                            if update_tuple(self.m_collection, new_tuple, len(db_tuple)) is not None:
+                                self.compare_file.write("\n更新条目" + "*" * 50)
+                            self.compare_file.write("\n")
                             self.compare_file.flush()
                             # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
                             # for i in r:

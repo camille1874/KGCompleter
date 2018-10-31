@@ -70,7 +70,7 @@ def insert_knowledge(m_collection, entity_knowledge):
     tmp_tuple = {"head": entity_knowledge["head"]}
     for knowledge in entity_knowledge["relation"].items():
         tmp_tuple["relation"] = knowledge[0]
-        if len(knowledge[1] == 0):
+        if len(knowledge[1]) == 0:
             continue
         for l in knowledge[1]:
             tmp_tuple["tail"] = l

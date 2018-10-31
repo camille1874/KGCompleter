@@ -11,6 +11,7 @@ import requests, time
 def get_html_baike(url):
     headers = {'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686)Gecko/20071127 Firefox/2.0.0.11'}
     soup_baike = BeautifulSoup(requests.get(url=url, headers=headers).content, "html.parser")
+    requests.adapters.DEFAULT_RETRIES = 5
     s = requests.session()
     s.keep_alive = False
     [s.extract() for s in soup_baike(['script', 'style', 'img', 'sup', 'b'])]
