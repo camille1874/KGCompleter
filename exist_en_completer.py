@@ -62,10 +62,13 @@ class en_completer:
                             # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
                             # for i in r:
                             #     print(i)
-                        elif not set(rel[1]) == set(db_tuple):
+                        elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
                             self.compare_file.write("不一致的实体关系:" + web_tuples["head"] + "-" + rel[0] + ":\n"
                                                                                                       "知识库答案集：")
-                            self.compare_file.write(" / ".join(db_tuple))
+                            if isinstance(db_tuple[0], list):
+                                self.compare_file.write(" / ".join(db_tuple[0]))
+                            else:
+                                self.compare_file.write(" / ".join(db_tuple))
                             self.compare_file.write("\n新/已爬取的答案集：")
                             self.compare_file.write(" / ".join(rel[1]))
                             self.compare_file.write("\n更新条目" + "*" * 20)
