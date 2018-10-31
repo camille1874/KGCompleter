@@ -37,6 +37,9 @@ class en_completer:
             try:
                 web_tuples = get_knowledge(en)[0]
                 db_tuples = list(self.m_collection.find({"head": en}))
+                if len(web_tuples) == 0:
+                    entity_list.remove(en)
+                    continue
                 if len(db_tuples) == 0:
                     self.compare_file.write(
                         "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n")
@@ -66,7 +69,7 @@ class en_completer:
                             self.compare_file.write("不一致的实体关系:" + web_tuples["head"] + "-" + rel[0] + ":\n"
                                                                                                       "知识库答案集：")
                             if isinstance(db_tuple[0], list):
-                                self.compare_file.write(" / ".join(db_tuple[0]))
+                                self.compare_file.write(" / ".join(db_tuple[0]) + "(列表)")
                             else:
                                 self.compare_file.write(" / ".join(db_tuple))
                             self.compare_file.write("\n新/已爬取的答案集：")

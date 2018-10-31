@@ -86,7 +86,7 @@ def get_tuple(entity, attr):
                 answers.append(clean_str(tag.get_text()))
         m_tuple['tail'] = answers
     elif attr == "BaiduCARD":
-        # TODO: 长度阈值暂时设为1000，直接截取
+        # 长度阈值暂时设为1000，选到阈值之内最后一句。
         answers = []
         intro = ""
         meta = soup.find("meta", attrs={"name": "description"})
@@ -94,7 +94,7 @@ def get_tuple(entity, attr):
             intro = meta["content"]
         if intro is None or intro == "":
             log += attr + "-找不到\n"
-        answers.append(clean_str(intro[:1000]))
+        answers.append(clean_str(intro[:intro[:1000].rfind("。")]))
         m_tuple['tail'] = answers
     else:
         result = query(entity, attr)
@@ -120,7 +120,6 @@ def trigger(entity):
     if entity in seeds:
         seeds.remove(entity)
     return seeds
-
 
 # def restat():
 
