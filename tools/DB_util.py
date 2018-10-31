@@ -56,6 +56,8 @@ def get_relation_value(m_collection, entity, attr):
 def insert_tuple(m_collection, m_tuple):
     tuples = []
     tmp_tuple = {"head": m_tuple["head"], "relation": m_tuple["relation"]}
+    if len(m_tuple["tail"]) == 0:
+        return None
     for answer in m_tuple["tail"]:
         tmp_tuple["tail"] = answer
         tuples.append(tmp_tuple.copy())
@@ -68,6 +70,8 @@ def insert_knowledge(m_collection, entity_knowledge):
     tmp_tuple = {"head": entity_knowledge["head"]}
     for knowledge in entity_knowledge["relation"].items():
         tmp_tuple["relation"] = knowledge[0]
+        if len(knowledge[1] == 0):
+            continue
         for l in knowledge[1]:
             tmp_tuple["tail"] = l
             tuples.append(tmp_tuple.copy())
@@ -75,10 +79,10 @@ def insert_knowledge(m_collection, entity_knowledge):
 
 
 # 知识库可能存在<head, relation> 多条结果， 注意处理tail集合不一致的情况
-def update_tuple(m_collection, m_tuple):
+def update_tuple(m_collection, m_tuple, db_tuple_len):
     if len(m_tuple["tail"]) == 0:
         return m_collection.remove({"head": m_tuple["head"], "relation": m_tuple["relation"]})
-    elif len(m_tuple["tail"]) == 1:
+    elif db_tuple_len == 1:
         return m_collection.update({"head": m_tuple["head"], "relation": m_tuple["relation"]},
                                    {"$set": {"tail": m_tuple["tail"][0]}})
     else:

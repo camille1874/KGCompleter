@@ -75,7 +75,7 @@ class en_completer:
                             self.compare_file.write("\n新/已爬取的答案集：")
                             self.compare_file.write(" / ".join(rel[1]))
                             self.compare_file.write("\n更新条目" + "*" * 20)
-                            print(update_tuple(self.m_collection, new_tuple))
+                            print(update_tuple(self.m_collection, new_tuple, len(db_tuple)))
                             self.compare_file.write("\n\n")
                             self.compare_file.flush()
                             # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
@@ -92,6 +92,8 @@ class en_completer:
                 entity_list.remove(en)
             except Exception as e:
                 print(e)
+                print(web_tuples)
+                print(db_tuples)
                 continue
 
     # 根据知识库三元组遍历, 触发也是根据tail实体，该方法不适用：
