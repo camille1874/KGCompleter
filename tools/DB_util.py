@@ -6,8 +6,6 @@ import time
 
 from pymongo import MongoClient
 from bson.code import Code
-
-
 def stat():
     try:
         with MongoClient("mongodb://172.16.35.1:27017") as client:
@@ -16,7 +14,6 @@ def stat():
             return m_collection
     except Exception as e:
         print(e)
-
 
 def get_tuple_db(m_collection):
     tuples = []

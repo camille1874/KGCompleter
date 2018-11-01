@@ -10,6 +10,7 @@ import codecs
 import json
 
 from tools.DB_util import insert_tuple, update_tuple, insert_knowledge
+from tools.dict_tools import build_synon_dict, get_synons
 
 
 class en_completer:
@@ -25,6 +26,7 @@ class en_completer:
         if len(records) > 0:
             self.entites = [x.strip().split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
+        self.synon_lists = build_synon_dict("SynonDic.txt")
 
     # 根据web页面遍历, 触发也是根据网页链接：
     # kb存在web不存在：不改变
@@ -38,6 +40,7 @@ class en_completer:
         entity_list = [init_entity]
         while len(entity_list) is not 0:
             en = entity_list[0]
+            # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
             web_tuples = get_knowledge(en)[0]
             db_tuples = list(self.m_collection.find({"head": en}))
             try:
