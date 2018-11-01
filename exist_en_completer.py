@@ -26,7 +26,7 @@ class en_completer:
         if len(records) > 0:
             self.entites = [x.strip().split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
-        self.synon_lists = build_synon_dict("SynonDic.txt")
+        # self.synon_lists = build_synon_dict(".\\resources\\SynonDic.txt")
 
     # 根据web页面遍历, 触发也是根据网页链接：
     # kb存在web不存在：不改变

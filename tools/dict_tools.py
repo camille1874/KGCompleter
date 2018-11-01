@@ -7,7 +7,7 @@ import os
 
 
 def build_synon_dict(file_name):
-    f = codecs.open(os.path.join("..\\resources", file_name), encoding="utf-8")
+    f = codecs.open(file_name, encoding="utf-8")
     lines = f.readlines()
     synon_lists = [x.strip().split(" ") for x in lines]
     return synon_lists
@@ -21,5 +21,5 @@ def get_synons(word, synon_lists):
     return result
 
 
-# synon_lists = build_synon_dict("SynonDic.txt")
+# synon_lists = build_synon_dict("..\\resources\\SynonDic.txt")
 # print(get_synons("家", synon_lists))
