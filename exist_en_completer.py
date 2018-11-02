@@ -10,7 +10,6 @@ import codecs
 import json
 
 from tools.DB_util import insert_tuple, update_tuple, insert_knowledge
-from tools.dict_tools import build_synon_dict, get_synons
 
 
 class en_completer:
@@ -26,6 +25,11 @@ class en_completer:
         if len(records) > 0:
             self.entites = [x.strip().split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
+        self.init_list = ["姚明", "王宝强", "中国", "清华大学", "上市", "腾讯", "郎咸平",
+                          "金庸", "张艺谋", "陈奕迅", "鱼香肉丝", "台风山竹", "爵士舞", "重金属",
+                          "世界杯", "游泳", "深圳", "宪法", "英国短毛猫", "黎曼猜想", "H7N9病毒",
+                          "客家文化", "上海博物馆", "静安区", "北京市人民政府",
+                          "卢浮宫" "阳江核电站", "低碳经济"]
         # self.synon_lists = build_synon_dict(".\\resources\\SynonDic.txt")
 
     # 根据web页面遍历, 触发也是根据网页链接：
@@ -33,21 +37,18 @@ class en_completer:
     # kb和web不一致：按web更新
     # kb不存在web存在：写入(新关系-单条三元组；新实体-整条知识)
     def check_result_from_web(self):
-        if self.last_entity == "":
-            init_entity = "姚明"
-        else:
-            init_entity = self.last_entity
-        entity_list = [init_entity]
+        entity_list = [self.last_entity] + list(set(self.init_list).difference(set(self.entites)))
         while len(entity_list) is not 0:
             en = entity_list[0]
             # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
             web_tuples = get_knowledge(en)[0]
             db_tuples = list(self.m_collection.find({"head": en}))
+            print(web_tuples)
+            print(db_tuples)
             try:
                 if len(web_tuples) == 0:
                     entity_list.remove(en)
-                    continue
-                if len(db_tuples) == 0:
+                elif len(db_tuples) == 0:
                     self.compare_file.write(
                         "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n")
                     if insert_knowledge(self.m_collection, web_tuples) is not None:
@@ -90,7 +91,6 @@ class en_completer:
                             # r = self.m_collection.find({"head": new_tuple["head"], "relation": new_tuple["relation"]})
                             # for i in r:
                             #     print(i)
-
                 if en not in self.entites:
                     self.record_file.write(en + "\t")
                     self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))

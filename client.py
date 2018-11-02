@@ -4,7 +4,6 @@
 # @Project: KGCompleter
 
 # TODO: 定期备份和更新 mongodump -h "172.16.35.1:27017" -d "triple" -c "baidubaike" -o "E:\data\db"
-# TODO: 超时重启
 # TODO: 多线程
 # TODO: 查其他注意事项
 
