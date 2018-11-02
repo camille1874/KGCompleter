@@ -37,17 +37,21 @@ class en_completer:
     # kb和web不一致：按web更新
     # kb不存在web存在：写入(新关系-单条三元组；新实体-整条知识)
     def check_result_from_web(self):
-        entity_list = [self.last_entity] + list(set(self.init_list).difference(set(self.entites)))
+        entity_list = []
+        if self.last_entity != "":
+            entity_list = [self.last_entity]
+        entity_list += list(set(self.init_list).difference(set(self.entites)))
         while len(entity_list) is not 0:
             en = entity_list[0]
             # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
             web_tuples = get_knowledge(en)[0]
+            log = get_knowledge(en)[1]
             db_tuples = list(self.m_collection.find({"head": en}))
             print(web_tuples)
             print(db_tuples)
             try:
                 if len(web_tuples) == 0:
-                    entity_list.remove(en)
+                    self.compare_file.write(log)
                 elif len(db_tuples) == 0:
                     self.compare_file.write(
                         "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n")

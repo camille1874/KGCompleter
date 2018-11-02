@@ -16,12 +16,12 @@ def get_html_baike(url):
     page = ''
     while page == '':
         try:
-            # page = requests.get(url=url, allow_redirects=False, timeout=1, proxies=get_random_ip(), headers=headers)
-            page = requests.get(url=url, allow_redirects=False, timeout=1, headers=headers)
+            # page = requests.get(url=url, timeout=1, proxies=get_random_ip(), headers=headers)
+            page = requests.get(url=url, timeout=1, headers=headers)
             break
         except Exception as e:
             print(e)
-            time.sleep(random.randint(0, 3))
+            time.sleep(random.randint(0, 10))
             continue
 
     soup_baike = BeautifulSoup(page.content, "html.parser")
