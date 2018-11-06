@@ -11,9 +11,9 @@ import re
 from tools.text_processor import clean_str
 
 
-def get_info(basicInfo_block):
+def get_info(info_block):
     info = {}
-    for bI_LR in basicInfo_block.contents:
+    for bI_LR in info_block.contents:
         try:
             for bI in bI_LR:
                 if not isinstance(bI, bs4.element.Tag) or bI.name is None:
