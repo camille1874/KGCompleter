@@ -41,8 +41,11 @@ class en_completer:
         if self.last_entity != "":
             entity_list = [self.last_entity]
         entity_list += list(set(self.init_list).difference(set(self.entites)))
+        buffer_list = []
         while len(entity_list) is not 0:
             en = entity_list[0]
+            r_code = None
+            buffer_list.append(en)
             # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
             result = get_knowledge(en)
             web_tuples = result[0]
@@ -52,7 +55,7 @@ class en_completer:
                 if len(web_tuples) == 0:
                     pass
                 elif len(db_tuples) == 0:
-                    insert_knowledge(self.m_collection, web_tuples)
+                    r_code = insert_knowledge(self.m_collection, web_tuples)
                 else:
                     for rel in web_tuples["relation"].items():
                         if len(rel[1]) == 0:
@@ -60,15 +63,19 @@ class en_completer:
                         db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
                         new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
                         if len(db_tuple) == 0:
-                            insert_tuple(self.m_collection, new_tuple)
+                            r_code = insert_tuple(self.m_collection, new_tuple)
                         elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
-                            update_tuple(self.m_collection, new_tuple, len(db_tuple))
+                            r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
                 if en not in self.entites:
-                    self.record_file.write(en + "\t")
-                    self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                    self.record_file.write("\n")
-                    self.record_file.flush()
                     self.entites.append(en)
+                if r_code is not None:
+                    for buffer_en in buffer_list:
+                        if buffer_en != self.last_entity:
+                            self.record_file.write(buffer_en + "\t")
+                            self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                            self.record_file.write("\n")
+                            self.record_file.flush()
+                    buffer_list = []
                 entity_list += trigger(en)
                 entity_list.remove(en)
             except Exception as e:

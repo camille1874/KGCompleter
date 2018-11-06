@@ -17,6 +17,19 @@ def stat():
         print(e)
 
 
+buffer = []
+
+
+def check_insert(m_collection):
+    global buffer
+    if len(buffer) >= 500:
+        result = m_collection.insert(buffer)
+        buffer = []
+        return result
+    else:
+        return None
+
+
 def insert_tuple(m_collection, m_tuple):
     tuples = []
     tmp_tuple = {"head": m_tuple["head"], "relation": m_tuple["relation"]}
@@ -25,7 +38,10 @@ def insert_tuple(m_collection, m_tuple):
     for answer in m_tuple["tail"]:
         tmp_tuple["tail"] = answer
         tuples.append(tmp_tuple.copy())
-    return m_collection.insert(tuples)
+    # return m_collection.insert(tuples)
+    global buffer
+    buffer += tuples
+    return check_insert(m_collection)
 
 
 # {head: head, relation: {relation : relation, tail: tail}}
@@ -39,7 +55,10 @@ def insert_knowledge(m_collection, entity_knowledge):
         for l in knowledge[1]:
             tmp_tuple["tail"] = l
             tuples.append(tmp_tuple.copy())
-    return m_collection.insert(tuples)
+    # return m_collection.insert(tuples)
+    global buffer
+    buffer += tuples
+    return check_insert(m_collection)
 
 
 # 知识库可能存在<head, relation> 多条结果， 注意处理tail集合不一致的情况
