@@ -50,15 +50,8 @@ class en_completer:
             db_tuples = list(self.m_collection.find({"head": en}))
             try:
                 if len(web_tuples) == 0:
-                    # self.compare_file.write(log)
                     pass
                 elif len(db_tuples) == 0:
-                    # self.compare_file.write(
-                    #     "新/已爬取的数据库不存在的实体：" + json.dumps(web_tuples, ensure_ascii=False) + "\n")
-                    # if insert_knowledge(self.m_collection, web_tuples) is not None:
-                    #     self.compare_file.write("插入新实体条目集:" + "*" * 50)
-                    # self.compare_file.write("\n")
-                    # self.compare_file.flush()
                     insert_knowledge(self.m_collection, web_tuples)
                 else:
                     for rel in web_tuples["relation"].items():
@@ -67,24 +60,8 @@ class en_completer:
                         db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
                         new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
                         if len(db_tuple) == 0:
-                            # self.compare_file.write( "新/已爬取的数据库不存在的实体-关系条目：" + web_tuples["head"] + "-" +
-                            # json.dumps(rel, ensure_ascii=False) + "\n") if insert_tuple(self.m_collection,
-                            # new_tuple) is not None: self.compare_file.write("插入新条目:" + "*" * 50)
-                            # self.compare_file.write("\n") self.compare_file.flush()
                             insert_tuple(self.m_collection, new_tuple)
                         elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
-                            # self.compare_file.write("不一致的实体关系:" + web_tuples["head"] + "-" + rel[0] + ":\n"
-                            #                                                                           "知识库答案集：")
-                            # if isinstance(db_tuple[0], list):
-                            #     self.compare_file.write(" / ".join(db_tuple[0]) + "(列表)")
-                            # else:
-                            #     self.compare_file.write(" / ".join(db_tuple))
-                            # self.compare_file.write("\n新/已爬取的答案集：")
-                            # self.compare_file.write(" / ".join(rel[1]))
-                            # if update_tuple(self.m_collection, new_tuple, len(db_tuple)) is not None:
-                            #     self.compare_file.write("\n更新条目" + "*" * 50)
-                            # self.compare_file.write("\n")
-                            # self.compare_file.flush()
                             update_tuple(self.m_collection, new_tuple, len(db_tuple))
                 if en not in self.entites:
                     self.record_file.write(en + "\t")
