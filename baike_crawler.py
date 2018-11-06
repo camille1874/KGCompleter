@@ -37,18 +37,6 @@ def get_info(basicInfo_block):
     return info
 
 
-# 值
-def query(entity, attr):
-    info, log = get_knowledge(entity)
-    answer = []
-    log += "查询属性/关系:" + attr + "\n"
-    if attr in info:
-        answer = info[attr]
-    else:
-        log += "属性" + attr + '-找不到\n'
-    return answer, log
-
-
 # <关系， 值>
 def get_knowledge(entity):
     entity_uri = 'http://baike.baidu.com/item/' + entity
@@ -63,14 +51,14 @@ def get_knowledge(entity):
         tmp = get_info(info_block)
         if tmp == {}:
             log += entity + "-没有Infobox属性或关系\n"
-        tmp["BaiduTAG"] = get_tuple(entity, "BaiduTAG")[0]["tail"]
-        tmp["BaiduCARD"] = get_tuple(entity, "BaiduCARD")[0]["tail"]
+        tmp["BaiduTAG"] = get_special_tuple(entity, "BaiduTAG")[0]["tail"]
+        tmp["BaiduCARD"] = get_special_tuple(entity, "BaiduCARD")[0]["tail"]
         tuples["relation"] = tmp
     return tuples, log
 
 
 # {'head':'', 'relation':'', 'tail', ''}
-def get_tuple(entity, attr):
+def get_special_tuple(entity, attr):
     entity_uri = 'http://baike.baidu.com/item/' + entity
     log = "查询百科列表实体:" + entity_uri + "\n"
     soup = To.get_html_baike(entity_uri)
@@ -97,11 +85,7 @@ def get_tuple(entity, attr):
         answers.append(clean_str(intro[:intro[:1000].rfind("。") + 1]))
         m_tuple['tail'] = answers
     else:
-        result = query(entity, attr)
-        if result == "":
-            log += entity + "-找不到\n"
-        m_tuple['tail'] = result[0]
-        log += result[1]
+        return None
     return m_tuple, log
 
 
@@ -121,7 +105,3 @@ def trigger(entity):
         seeds.remove(entity)
     return seeds
 
-# def restat():
-
-
-# trigger("姚明")
