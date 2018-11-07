@@ -9,7 +9,19 @@
 
 # TODO: 多义问题 原始（mongoDB三元组就没有存实体URI）
 from exist_en_completer import en_completer
+import atexit
 
 
-ec = en_completer()
-ec.check_result_from_web()
+def record_remaining():
+    if not ec.flush_flag and ec.IO_buffer_list:
+        ec.record_file.write("".join(ec.IO_buffer_list))
+        ec.record_file.close()
+    print("Record remaining entities...")
+
+
+if __name__ == '__main__':
+    ec = en_completer()
+    print("Collecting Knowledge...")
+    ec.check_result_from_web()
+    print("Program finished...")
+    atexit.register(record_remaining)

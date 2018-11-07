@@ -22,7 +22,9 @@ class en_completer:
         records = self.record_file.readlines()
         self.last_entity = ""
         self.entites = []
-        if len(records) > 0:
+        self.IO_buffer_list = []
+        self.flush_flag = True
+        if records:
             self.entites = [x.strip().split("\t")[0] for x in records]
             self.last_entity = self.entites[-1]
         self.init_list = ["姚明", "王宝强", "中国", "清华大学", "上市", "腾讯", "郎咸平",
@@ -38,26 +40,25 @@ class en_completer:
     # kb不存在web存在：写入(新关系-单条三元组；新实体-整条知识)
     def check_result_from_web(self):
         entity_list = []
-        if self.last_entity != "":
+        if self.last_entity:
             entity_list = [self.last_entity]
         entity_list += list(set(self.init_list).difference(set(self.entites)))
         buffer_list = []
         while entity_list:
             en = entity_list[0]
             r_code = None
+            self.flush_flag = False
             buffer_list.append(en)
             # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
             soup = get_soup(en)
             result = get_knowledge(soup, en)
             web_tuples = result[0]
             log = result[1]
-            db_tuples = list(self.m_collection.find({"head": en}))
             try:
-                if len(web_tuples) == 0:
-                    pass
-                elif len(db_tuples) == 0:
+                db_tuples = list(self.m_collection.find({"head": en}))
+                if not db_tuples:
                     r_code = insert_knowledge(self.m_collection, web_tuples)
-                else:
+                elif web_tuples:
                     for rel in web_tuples["relation"].items():
                         if len(rel[1]) == 0:
                             continue
@@ -67,19 +68,25 @@ class en_completer:
                             r_code = insert_tuple(self.m_collection, new_tuple)
                         elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
                             r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
-                if r_code is not None:
+                else:
+                    continue
+                if r_code:
                     for buffer_en in buffer_list:
                         if buffer_en not in self.entites:
                             self.entites.append(buffer_en)
-                            self.record_file.write(buffer_en + "\t")
-                            self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                            self.record_file.write("\n")
-                            self.record_file.flush()
-                    buffer_list = []
+                            self.IO_buffer_list.append(buffer_en + "\t"
+                                                  + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                                                  + "\n")
+                    buffer_list.clear()
+                if len(self.IO_buffer_list) >= 20:
+                    self.record_file.write("".join(self.IO_buffer_list))
+                    self.record_file.flush()
+                    self.flush_flag = True
+                    self.IO_buffer_list.clear()
                 entity_list += trigger(soup, en)
                 entity_list.remove(en)
             except Exception as e:
-                print(e)
+                # print(e)
                 print(web_tuples)
                 print(db_tuples)
                 continue
