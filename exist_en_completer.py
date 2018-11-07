@@ -56,9 +56,11 @@ class en_completer:
             log = result[1]
             try:
                 db_tuples = list(self.m_collection.find({"head": en}))
-                if not db_tuples:
+                if not web_tuples:
+                    continue
+                elif not db_tuples:
                     r_code = insert_knowledge(self.m_collection, web_tuples)
-                elif web_tuples:
+                else:
                     for rel in web_tuples["relation"].items():
                         if len(rel[1]) == 0:
                             continue
@@ -68,8 +70,6 @@ class en_completer:
                             r_code = insert_tuple(self.m_collection, new_tuple)
                         elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
                             r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
-                else:
-                    continue
                 if r_code:
                     for buffer_en in buffer_list:
                         if buffer_en not in self.entites:
