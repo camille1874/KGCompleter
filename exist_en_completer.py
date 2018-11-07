@@ -54,9 +54,13 @@ class en_completer:
             result = get_knowledge(soup, en)
             web_tuples = result[0]
             log = result[1]
+            db_tuples = list(self.m_collection.find({"head": en}))
+            # print(db_tuples)
+            # print(web_tuples)
+
             try:
-                db_tuples = list(self.m_collection.find({"head": en}))
                 if not web_tuples:
+                    entity_list.remove(en)
                     continue
                 elif not db_tuples:
                     r_code = insert_knowledge(self.m_collection, web_tuples)

@@ -20,8 +20,8 @@ def get_html_baike(url):
             page = requests.get(url=url, timeout=1, headers=headers)
             break
         except Exception as e:
-            print(e)
-            time.sleep(random.randint(0, 10))
+            # print(e)
+            time.sleep(random.randint(0, 5))
             continue
 
     soup_baike = BeautifulSoup(page.content, "html.parser")
