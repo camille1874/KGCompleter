@@ -4,7 +4,7 @@
 # @Project: KGCompleter
 import datetime
 
-from baike_crawler import trigger, get_knowledge
+from baike_crawler import trigger, get_knowledge, get_soup
 from tools import DB_util
 import codecs
 import json
@@ -42,12 +42,13 @@ class en_completer:
             entity_list = [self.last_entity]
         entity_list += list(set(self.init_list).difference(set(self.entites)))
         buffer_list = []
-        while len(entity_list) is not 0:
+        while entity_list:
             en = entity_list[0]
             r_code = None
             buffer_list.append(en)
             # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
-            result = get_knowledge(en)
+            soup = get_soup(en)
+            result = get_knowledge(soup, en)
             web_tuples = result[0]
             log = result[1]
             db_tuples = list(self.m_collection.find({"head": en}))
@@ -66,17 +67,16 @@ class en_completer:
                             r_code = insert_tuple(self.m_collection, new_tuple)
                         elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
                             r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
-                if en not in self.entites:
-                    self.entites.append(en)
                 if r_code is not None:
                     for buffer_en in buffer_list:
-                        if buffer_en != self.last_entity:
+                        if buffer_en not in self.entites:
+                            self.entites.append(buffer_en)
                             self.record_file.write(buffer_en + "\t")
                             self.record_file.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                             self.record_file.write("\n")
                             self.record_file.flush()
                     buffer_list = []
-                entity_list += trigger(en)
+                entity_list += trigger(soup, en)
                 entity_list.remove(en)
             except Exception as e:
                 print(e)

@@ -37,11 +37,15 @@ def get_info(info_block):
     return info
 
 
-# <关系， 值>
-def get_knowledge(entity):
+def get_soup(entity):
     entity_uri = 'http://baike.baidu.com/item/' + entity
-    log = "查询百科列表实体:" + entity_uri + "\n"
     soup = To.get_html_baike(entity_uri)
+    return soup
+
+
+# <关系， 值>
+def get_knowledge(soup, entity):
+    log = "查询百科列表实体:" + entity + "\n"
     info_block = soup.find(class_='basic-info cmn-clearfix')
     tuples = {}
     if info_block is None:
@@ -51,17 +55,15 @@ def get_knowledge(entity):
         tmp = get_info(info_block)
         if tmp == {}:
             log += entity + "-没有Infobox属性或关系\n"
-        tmp["BaiduTAG"] = get_special_tuple(entity, "BaiduTAG")[0]["tail"]
-        tmp["BaiduCARD"] = get_special_tuple(entity, "BaiduCARD")[0]["tail"]
+        tmp["BaiduTAG"] = get_special_tuple(soup, entity, "BaiduTAG")[0]["tail"]
+        tmp["BaiduCARD"] = get_special_tuple(soup, entity, "BaiduCARD")[0]["tail"]
         tuples["relation"] = tmp
     return tuples, log
 
 
 # {'head':'', 'relation':'', 'tail', ''}
-def get_special_tuple(entity, attr):
-    entity_uri = 'http://baike.baidu.com/item/' + entity
-    log = "查询百科列表实体:" + entity_uri + "\n"
-    soup = To.get_html_baike(entity_uri)
+def get_special_tuple(soup, entity, attr):
+    log = "查询百科列表实体:" + entity + "\n"
     # print(soup.prettify())
     m_tuple = {'head': entity, 'relation': attr}
     if attr == "BaiduTAG":
@@ -89,9 +91,7 @@ def get_special_tuple(entity, attr):
     return m_tuple, log
 
 
-def trigger(entity):
-    entity_uri = 'http://baike.baidu.com/item/' + entity
-    soup = To.get_html_baike(entity_uri)
+def trigger(soup, entity):
     # print(soup.prettify()
     seeds = set()
     sources = soup.find_all("a", attrs={"href": re.compile(r'/item/.*')})
@@ -104,4 +104,3 @@ def trigger(entity):
     if entity in seeds:
         seeds.remove(entity)
     return seeds
-
