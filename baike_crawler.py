@@ -16,7 +16,7 @@ def get_info(info_block):
     for bI_LR in info_block.contents:
         try:
             for bI in bI_LR:
-                if not isinstance(bI, bs4.element.Tag) or bI.name is None:
+                if not (isinstance(bI, bs4.element.Tag) and bI.name):
                     continue
                 if bI.name == "dt":
                     tmp_name = ""
@@ -24,11 +24,11 @@ def get_info(info_block):
                         tmp_name += bi.string.strip().replace(" ", "")
                 elif bI.name == "dd":
                     contents = T.clean_str(bI.contents)
-                    if isinstance(contents, str) and contents != "":
+                    if isinstance(contents, str) and contents:
                         contents = [contents]
                     elif isinstance(contents, list):
-                        contents = [x for x in contents if x != ""]
-                        if len(contents) == 0:
+                        contents = [x for x in contents if x]
+                        if not contents:
                             continue
                     info[tmp_name] = contents
 
@@ -48,12 +48,12 @@ def get_knowledge(soup, entity):
     log = "查询百科列表实体:" + entity + "\n"
     info_block = soup.find(class_='basic-info cmn-clearfix')
     tuples = {}
-    if info_block is None:
+    if not info_block:
         log += entity + "-找不到\n"
     else:
         tuples = {"head": entity}
         tmp = get_info(info_block)
-        if tmp == {}:
+        if not tmp:
             log += entity + "-没有Infobox属性或关系\n"
         tmp["BaiduTAG"] = get_special_tuple(soup, entity, "BaiduTAG")[0]["tail"]
         tmp["BaiduCARD"] = get_special_tuple(soup, entity, "BaiduCARD")[0]["tail"]
@@ -69,7 +69,7 @@ def get_special_tuple(soup, entity, attr):
     if attr == "BaiduTAG":
         answers = []
         tags = soup.find_all(class_='taglist')
-        if tags is None:
+        if not tags:
             log += attr + "-找不到\n"
         else:
             for tag in tags:
@@ -80,9 +80,9 @@ def get_special_tuple(soup, entity, attr):
         answers = []
         intro = ""
         meta = soup.find("meta", attrs={"name": "description"})
-        if not meta is None:
+        if meta:
             intro = meta["content"]
-        if intro is None or intro == "":
+        if not intro:
             log += attr + "-找不到\n"
         answers.append(clean_str(intro[:intro[:1000].rfind("。") + 1]))
         m_tuple['tail'] = answers
@@ -97,7 +97,7 @@ def trigger(soup, entity):
     sources = soup.find_all("a", attrs={"href": re.compile(r'/item/.*')})
     entities = soup.find_all("div", attrs={"class": "name"})
     for item in sources:
-        if not (item.get("data-lemmaid") is None or item.string is None):
+        if item.get("data-lemmaid") and item.string:
             seeds.add(item.string)
     for item in entities:
         seeds.add(item["title"])

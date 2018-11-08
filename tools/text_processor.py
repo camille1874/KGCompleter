@@ -10,7 +10,7 @@ import bs4
 def extract_tag(s):
     res_str = r'<.*?>(.*?)</.*?>'
     tmp_str = re.findall(res_str, s, re.S | re.M)
-    if tmp_str is not None and tmp_str != []:
+    if tmp_str:
         return tmp_str[0]
     else:
         return s
