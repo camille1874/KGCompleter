@@ -48,7 +48,6 @@ class en_completer:
             en = entity_list[0]
             r_code = None
             self.flush_flag = False
-            buffer_list.append(en)
             # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
             soup = get_soup(en)
             result = get_knowledge(soup, en)
@@ -62,18 +61,20 @@ class en_completer:
                 if not web_tuples:
                     entity_list.remove(en)
                     continue
-                elif not db_tuples:
-                    r_code = insert_knowledge(self.m_collection, web_tuples)
                 else:
-                    for rel in web_tuples["relation"].items():
-                        if len(rel[1]) == 0:
-                            continue
-                        db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
-                        new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
-                        if len(db_tuple) == 0:
-                            r_code = insert_tuple(self.m_collection, new_tuple)
-                        elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
-                            r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
+                    buffer_list.append(en)
+                    if not db_tuples:
+                        r_code = insert_knowledge(self.m_collection, web_tuples)
+                    else:
+                        for rel in web_tuples["relation"].items():
+                            if not rel[1]:
+                                continue
+                            db_tuple = [x["tail"] for x in db_tuples if x["relation"] == rel[0]]
+                            new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
+                            if not db_tuple:
+                                r_code = insert_tuple(self.m_collection, new_tuple)
+                            elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
+                                r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
                 if r_code:
                     for buffer_en in buffer_list:
                         if buffer_en not in self.entites:
