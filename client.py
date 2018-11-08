@@ -13,8 +13,8 @@ import atexit
 
 
 def record_remaining():
-    if not ec.flush_flag and ec.IO_buffer_list:
-        ec.record_file.write("".join(ec.IO_buffer_list))
+    if not ec.flush_flag and ec.buffer_list:
+        ec.record_file.write("".join(ec.buffer_list))
         ec.record_file.close()
     print("Record remaining entities...")
 

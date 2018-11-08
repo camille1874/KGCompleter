@@ -21,12 +21,13 @@ class en_completer:
         self.record_file.seek(0)
         records = self.record_file.readlines()
         self.last_entity = ""
-        self.entites = []
-        self.IO_buffer_list = []
+        self.entites = set()
+        self.buffer_list = []
         self.flush_flag = True
         if records:
-            self.entites = [x.strip().split("\t")[0] for x in records]
-            self.last_entity = self.entites[-1]
+            tmp_entities = [x.strip().split("\t")[0] for x in records]
+            self.last_entity = tmp_entities[-1]
+            self.entites = set(tmp_entities)
         self.init_list = ["姚明", "王宝强", "中国", "清华大学", "上市", "腾讯", "郎咸平",
                           "金庸", "张艺谋", "陈奕迅", "鱼香肉丝", "台风山竹", "爵士舞", "重金属",
                           "世界杯", "游泳", "深圳", "宪法", "英国短毛猫", "黎曼猜想", "H7N9病毒",
@@ -42,8 +43,7 @@ class en_completer:
         entity_list = []
         if self.last_entity:
             entity_list = [self.last_entity]
-        entity_list += list(set(self.init_list).difference(set(self.entites)))
-        buffer_list = []
+        entity_list += list(set(self.init_list).difference(self.entites))
         while entity_list:
             en = entity_list[0]
             r_code = None
@@ -56,13 +56,13 @@ class en_completer:
             db_tuples = list(self.m_collection.find({"head": en}))
             # print(db_tuples)
             # print(web_tuples)
-
             try:
                 if not web_tuples:
                     entity_list.remove(en)
                     continue
                 else:
-                    buffer_list.append(en)
+                    time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    self.buffer_list.append(en + "\t" + time)
                     if not db_tuples:
                         r_code = insert_knowledge(self.m_collection, web_tuples)
                     else:
@@ -73,22 +73,17 @@ class en_completer:
                             new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
                             if not db_tuple:
                                 r_code = insert_tuple(self.m_collection, new_tuple)
-                            elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
+                            elif not set(rel[1]) == set(db_tuple):
                                 r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
                 if r_code:
-                    for buffer_en in buffer_list:
-                        if buffer_en not in self.entites:
-                            self.entites.append(buffer_en)
-                            self.IO_buffer_list.append(buffer_en + "\t"
-                                                  + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                                                  + "\n")
-                    buffer_list.clear()
-                if len(self.IO_buffer_list) >= 20:
-                    self.record_file.write("".join(self.IO_buffer_list))
+                    self.record_file.write("\n".join(self.buffer_list))
+                    self.record_file.write("\n")
                     self.record_file.flush()
                     self.flush_flag = True
-                    self.IO_buffer_list.clear()
-                entity_list += trigger(soup, en)
+                    self.buffer_list.clear()
+                self.entites.add(en)
+                tmp_set = trigger(soup, en).difference(self.entites)
+                entity_list += list(tmp_set)
                 entity_list.remove(en)
             except Exception as e:
                 # print(e)
