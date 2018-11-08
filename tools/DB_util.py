@@ -22,9 +22,9 @@ buffer = []
 
 def check_insert(m_collection):
     global buffer
-    if len(buffer) >= 500:
+    if len(buffer) >= 50:
         result = m_collection.insert(buffer)
-        buffer = []
+        buffer.clear()
         return result
     else:
         return None
@@ -33,7 +33,7 @@ def check_insert(m_collection):
 def insert_tuple(m_collection, m_tuple):
     tuples = []
     tmp_tuple = {"head": m_tuple["head"], "relation": m_tuple["relation"]}
-    if len(m_tuple["tail"]) == 0:
+    if not m_tuple["tail"]:
         return None
     for answer in m_tuple["tail"]:
         tmp_tuple["tail"] = answer
@@ -50,7 +50,7 @@ def insert_knowledge(m_collection, entity_knowledge):
     tmp_tuple = {"head": entity_knowledge["head"]}
     for knowledge in entity_knowledge["relation"].items():
         tmp_tuple["relation"] = knowledge[0]
-        if len(knowledge[1]) == 0:
+        if not knowledge[1]:
             continue
         for l in knowledge[1]:
             tmp_tuple["tail"] = l
@@ -63,7 +63,7 @@ def insert_knowledge(m_collection, entity_knowledge):
 
 # 知识库可能存在<head, relation> 多条结果， 注意处理tail集合不一致的情况
 def update_tuple(m_collection, m_tuple, db_tuple_len):
-    if len(m_tuple["tail"]) == 0:
+    if not m_tuple["tail"]:
         # return m_collection.remove({"head": m_tuple["head"], "relation": m_tuple["relation"]})
         return None
     elif db_tuple_len == 1:

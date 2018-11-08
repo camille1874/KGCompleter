@@ -3,6 +3,7 @@
 # @Author  : xuzh
 # @Project: KGCompleter
 import datetime
+import random
 
 from baike_crawler import trigger, get_knowledge, get_soup
 from tools import DB_util
@@ -10,7 +11,6 @@ import codecs
 import json
 
 from tools.DB_util import insert_tuple, update_tuple, insert_knowledge
-
 
 class en_completer:
     def __init__(self):
@@ -28,11 +28,8 @@ class en_completer:
             tmp_entities = [x.strip().split("\t")[0] for x in records]
             self.last_entity = tmp_entities[-1]
             self.entites = set(tmp_entities)
-        self.init_list = ["姚明", "王宝强", "中国", "清华大学", "上市", "腾讯", "郎咸平",
-                          "金庸", "张艺谋", "陈奕迅", "鱼香肉丝", "台风山竹", "爵士舞", "重金属",
-                          "世界杯", "游泳", "深圳", "宪法", "英国短毛猫", "黎曼猜想", "H7N9病毒",
-                          "客家文化", "上海博物馆", "静安区", "北京市人民政府",
-                          "卢浮宫", "阳江核电站", "低碳经济"]
+        self.init_list = codecs.open(".\\resources\\SynonDic.txt", encoding="utf-8").readlines()
+        self.init_list = random.sample([x.split(" ")[0] for x in self.init_list], 50)
         # self.synon_lists = build_synon_dict(".\\resources\\SynonDic.txt")
 
     # 根据web页面遍历, 触发也是根据网页链接：
@@ -54,15 +51,11 @@ class en_completer:
             web_tuples = result[0]
             log = result[1]
             db_tuples = list(self.m_collection.find({"head": en}))
-            # print(db_tuples)
-            # print(web_tuples)
             try:
                 if not web_tuples:
                     entity_list.remove(en)
                     continue
                 else:
-                    time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    self.buffer_list.append(en + "\t" + time)
                     if not db_tuples:
                         r_code = insert_knowledge(self.m_collection, web_tuples)
                     else:
@@ -76,13 +69,16 @@ class en_completer:
                             elif not set(rel[1]) == set(db_tuple):
                                 r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
                 if r_code:
-                    self.record_file.write("\n".join(self.buffer_list))
-                    self.record_file.write("\n")
-                    self.record_file.flush()
+                    self.record_file.write("".join(self.buffer_list))
                     self.flush_flag = True
                     self.buffer_list.clear()
-                self.entites.add(en)
+                    self.record_file.flush()
                 tmp_set = trigger(soup, en).difference(self.entites)
+                if tmp_set and en != self.last_entity:
+                    time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    self.buffer_list.append(en + "\t" + time + "\n")
+                    self.entites.add(en)
+                    # 防止无法触发后续查询的实体成为last_entity
                 entity_list += list(tmp_set)
                 entity_list.remove(en)
             except Exception as e:
