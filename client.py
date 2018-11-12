@@ -20,8 +20,12 @@ def record_remaining():
 
 
 if __name__ == '__main__':
-    ec = en_completer()
-    print("Collecting Knowledge...")
-    ec.check_result_from_web()
+    run_status = None
+    while not run_status:
+        ec = en_completer()
+        print("Collecting Knowledge...")
+        run_status = ec.check_result_from_web()
+        record_remaining()
+        print("Timeout, restart crawler...")
     print("Program finished...")
     atexit.register(record_remaining)

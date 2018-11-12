@@ -97,9 +97,13 @@ def trigger(soup, entity):
     sources = soup.find_all("a", attrs={"href": re.compile(r'/item/.*')})
     entities = soup.find_all("div", attrs={"class": "name"})
     for item in sources:
+        if len(seeds) > 100:
+            return seeds
         if item.get("data-lemmaid") and item.string:
             seeds.add(item.string)
     for item in entities:
+        if len(seeds) > 100:
+            return seeds
         seeds.add(item["title"])
     if entity in seeds:
         seeds.remove(entity)

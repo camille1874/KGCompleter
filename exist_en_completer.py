@@ -4,6 +4,8 @@
 # @Project: KGCompleter
 import datetime
 import random
+import sys
+import time
 
 from baike_crawler import trigger, get_knowledge, get_soup
 from tools import DB_util
@@ -29,7 +31,7 @@ class en_completer:
             self.last_entity = tmp_entities[-1]
             self.entites = set(tmp_entities)
         self.init_list = codecs.open(".\\resources\\SynonDic.txt", encoding="utf-8").readlines()
-        self.init_list = random.sample([x.split(" ")[0] for x in self.init_list], 50)
+        self.init_list = random.sample([x.split(" ")[0] for x in self.init_list], 20)
         # self.synon_lists = build_synon_dict(".\\resources\\SynonDic.txt")
 
     # 根据web页面遍历, 触发也是根据网页链接：
@@ -43,6 +45,8 @@ class en_completer:
         entity_list += list(set(self.init_list).difference(self.entites))
         while entity_list:
             en = entity_list[0]
+            stat_time = time.time()
+            end_time = stat_time
             r_code = None
             self.flush_flag = False
             # synon_entities = get_synons(en, self.synon_lists) 质量不高，不适合用来处理实体或关系
@@ -75,17 +79,21 @@ class en_completer:
                     self.record_file.flush()
                 tmp_set = trigger(soup, en).difference(self.entites)
                 if tmp_set and en != self.last_entity:
-                    time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    self.buffer_list.append(en + "\t" + time + "\n")
+                    record_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    self.buffer_list.append(en + "\t" + record_time + "\n")
                     self.entites.add(en)
                     # 防止无法触发后续查询的实体成为last_entity
-                entity_list += list(tmp_set)
+                if len(entity_list) < 100:
+                    entity_list += list(tmp_set)
                 entity_list.remove(en)
+                end_time = time.time()
+                if end_time - stat_time > 20:
+                    return None
             except Exception as e:
                 # print(e)
                 print(web_tuples)
                 print(db_tuples)
-                continue
+                return None
 
     # 根据知识库三元组遍历, 触发也是根据tail实体，该方法不适用：
     # 按<实体，关系>直接检索mongoDB所有对应值效率较低，
