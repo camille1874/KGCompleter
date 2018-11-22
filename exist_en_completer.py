@@ -51,6 +51,8 @@ class en_completer:
         update_time = init_time
         while entity_list:
             en = entity_list[0]
+            if update_time - init_time > 60:
+                return None
             if en != self.last_entity and (en in self.entites or en in self.buffer_list):
                 continue
             stat_time = time.time()
@@ -64,8 +66,7 @@ class en_completer:
             log = result[1]
             db_tuples = list(self.m_collection.find({"head": en}))
             # print(db_tuples)
-            if update_time - init_time > 60:
-                return None
+
             try:
                 if not web_tuples:
                     entity_list.remove(en)
