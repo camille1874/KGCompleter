@@ -22,7 +22,7 @@ buffer = []
 
 def check_insert(m_collection):
     global buffer
-    if len(buffer) >= 50:
+    if len(buffer) >= 20:
         result = m_collection.insert(buffer)
         buffer.clear()
         return result
