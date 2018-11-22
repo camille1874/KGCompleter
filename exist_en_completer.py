@@ -99,7 +99,7 @@ class en_completer:
                     entity_list += list(tmp_set)
                 entity_list.remove(en)
                 end_time = time.time()
-                if end_time - stat_time > 2:
+                if end_time - stat_time > 10:
                     return None
             except Exception as e:
                 # print(e)
