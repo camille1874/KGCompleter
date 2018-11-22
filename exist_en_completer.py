@@ -47,11 +47,10 @@ class en_completer:
         if self.last_entity:
             entity_list = [self.last_entity]
         entity_list += list(set(self.init_list).difference(self.entites))
-        init_time = time.time()  # record file update
-        update_time = init_time
+        update_time = time.time()  # record file update
         while entity_list:
             en = entity_list[0]
-            if update_time - init_time > 60:
+            if time.time() - update_time > 60:
                 return None
             if en != self.last_entity and (en in self.entites or en in self.buffer_list):
                 continue
