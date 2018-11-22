@@ -10,6 +10,7 @@
 # TODO: 多义问题 原始（mongoDB三元组就没有存实体URI）
 from exist_en_completer import en_completer
 import atexit
+from tools.HTML_tools import get_hot_topic
 
 
 def record_remaining():
@@ -21,8 +22,9 @@ def record_remaining():
 
 if __name__ == '__main__':
     run_status = None
+    hot_topics = get_hot_topic()
     while not run_status:
-        ec = en_completer()
+        ec = en_completer(hot_topics)
         print("Collecting Knowledge...")
         run_status = ec.check_result_from_web()
         record_remaining()
