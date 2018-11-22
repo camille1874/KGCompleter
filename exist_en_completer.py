@@ -31,7 +31,10 @@ class en_completer:
             self.last_entity = tmp_entities[-1]
             self.entites = set(tmp_entities)
         self.init_list = codecs.open(".\\resources\\SynonDic.txt", encoding="utf-8").readlines()
-        self.init_list = random.sample([x.split(" ")[0] for x in self.init_list], 20)
+        tmp_list = []
+        for l in self.init_list:
+            tmp_list += l.split(" ")
+        self.init_list = random.sample(tmp_list, 50)
         # self.synon_lists = build_synon_dict(".\\resources\\SynonDic.txt")
 
     # 根据web页面遍历, 触发也是根据网页链接：
@@ -55,11 +58,12 @@ class en_completer:
             web_tuples = result[0]
             log = result[1]
             db_tuples = list(self.m_collection.find({"head": en}))
-            try:
-                if not web_tuples:
-                    entity_list.remove(en)
-                    continue
-                else:
+
+            if not web_tuples:
+                entity_list.remove(en)
+                continue
+            else:
+                try:
                     if not db_tuples:
                         r_code = insert_knowledge(self.m_collection, web_tuples)
                     else:
@@ -70,30 +74,32 @@ class en_completer:
                             new_tuple = {"head": web_tuples["head"], "relation": rel[0], "tail": rel[1]}
                             if not db_tuple:
                                 r_code = insert_tuple(self.m_collection, new_tuple)
-                            elif not set(rel[1]) == set(db_tuple):
+                            elif isinstance(db_tuple[0], list) or not set(rel[1]) == set(db_tuple):
                                 r_code = update_tuple(self.m_collection, new_tuple, len(db_tuple))
-                if r_code:
-                    self.record_file.write("".join(self.buffer_list))
-                    self.flush_flag = True
-                    self.buffer_list.clear()
-                    self.record_file.flush()
-                tmp_set = trigger(soup, en).difference(self.entites)
-                if tmp_set and en != self.last_entity:
-                    record_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    self.buffer_list.append(en + "\t" + record_time + "\n")
-                    self.entites.add(en)
-                    # 防止无法触发后续查询的实体成为last_entity
-                if len(entity_list) < 100:
-                    entity_list += list(tmp_set)
-                entity_list.remove(en)
-                end_time = time.time()
-                if end_time - stat_time > 20:
+                except Exception as e:
+                    # print(e)
+                    print(web_tuples)
+                    print(db_tuples)
                     return None
-            except Exception as e:
-                # print(e)
-                print(web_tuples)
-                print(db_tuples)
+            if r_code:
+                self.record_file.write("".join(self.buffer_list))
+                self.flush_flag = True
+                self.buffer_list.clear()
+                self.record_file.flush()
+            tmp_set = trigger(soup, en).difference(self.entites)
+            if tmp_set and en != self.last_entity:
+                record_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                self.buffer_list.append(en + "\t" + record_time + "\n")
+                self.entites.add(en)
+                # 防止无法触发后续查询的实体成为last_entity
+            # if len(entity_list) < 100:
+            #     entity_list += list(tmp_set)
+            entity_list.remove(en)
+            entity_list += list(tmp_set)[:200]
+            end_time = time.time()
+            if end_time - stat_time > 2:
                 return None
+
 
     # 根据知识库三元组遍历, 触发也是根据tail实体，该方法不适用：
     # 按<实体，关系>直接检索mongoDB所有对应值效率较低，
